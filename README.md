@@ -1,7 +1,5 @@
 # quiz-application-app
 
-# personal-portfolio-webpage
-
 **COMPANY**: codetech it solutions
 
 **NAME** : LK Roghtih
