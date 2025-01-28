@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-header h1 {
+            color: #1f2937;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .quiz-score {
+            font-size: 1.2rem;
+            color: #6366f1;
+            font-weight: 600;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            color: #1f2937;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option {
+            padding: 15px 20px;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: #4b5563;
+        }
+
+        .option:hover {
+            background: #e5e7eb;
+        }
+
+        .option.correct {
+            background: #34d399;
+            color: white;
+            border-color: #34d399;
+        }
+
+        .option.wrong {
+            background: #f87171;
+            color: white;
+            border-color: #f87171;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .progress {
+            color: #6366f1;
+            font-weight: 500;
+        }
+
+        .next-btn {
+            padding: 12px 25px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .next-btn:hover {
+            background: #4f46e5;
+        }
+
+        .next-btn:disabled {
+            background: #e5e7eb;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            text-align: center;
+            display: none;
+        }
+
+        .result-container h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+
+        .result-container p {
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            padding: 12px 25px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: #4f46e5;
+        }
+
+        .prize-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-top: 20px;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 20px;
+            }
+
+            .quiz-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .question {
+                font-size: 1.1rem;
+            }
+
+            .option {
+                padding: 12px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1>Interactive Quiz</h1>
+            <p class="quiz-score">Score: <span id="score">0</span></p>
+        </div>
+
+        <div id="question-container" class="question-container">
+            <p class="question" id="question"></p>
+            <div class="options" id="options"></div>
+        </div>
+
+        <div class="quiz-footer">
+            <p class="progress">Question <span id="current">1</span>/<span id="total">15</span></p>
+            <button class="next-btn" id="next-btn" disabled>Next Question</button>
+        </div>
+
+        <div class="result-container" id="result">
+            <h2>Quiz Completed!</h2>
+            <p>Your score: <span id="final-score">0</span> out of <span id="total-questions">15</span></p>
+            <div class="prize-message" id="prize-message"></div>
+            <button class="restart-btn" id="restart-btn">Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+        {
+            question: "What is the capital of Japan?",
+            options: ["Tokyo", "Seoul", "Beijing", "Bangkok"],
+            correct: 0
+        },
+        {
+            question: "Which gas do plants absorb from the atmosphere?",
+            options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+            correct: 2
+        },
+        {
+            question: "What is the largest mammal in the world?",
+            options: ["Elephant", "Blue Whale", "Giraffe", "Great White Shark"],
+            correct: 1
+        },
+        {
+            question: "Which element has the chemical symbol 'O'?",
+            options: ["Gold", "Oxygen", "Silver", "Iron"],
+            correct: 1
+        },
+        {
+            question: "What is the smallest prime number?",
+            options: ["1", "2", "3", "5"],
+            correct: 1
+        },
+        {
+            question: "Which planet is known for its rings?",
+            options: ["Jupiter", "Saturn", "Uranus", "Neptune"],
+            correct: 1
+        },
+        {
+            question: "What is the main ingredient in guacamole?",
+            options: ["Tomato", "Avocado", "Pepper", "Onion"],
+            correct: 1
+        },
+        {
+            question: "Who wrote 'Romeo and Juliet'?",
+            options: ["Charles Dickens", "William Shakespeare", "Mark Twain", "Jane Austen"],
+            correct: 1
+        },
+        {
+            question: "What is the hardest natural substance on Earth?",
+            options: ["Gold", "Diamond", "Iron", "Quartz"],
+            correct: 1
+        },
+        {
+            question: "Which country is known as the Land of the Rising Sun?",
+            options: ["China", "Japan", "Thailand", "South Korea"],
+            correct: 1
+        },
+        {
+                question: "What is the capital of France?",
+                options: ["London", "Berlin", "Paris", "Madrid"],
+                correct: 2
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                options: ["Jupiter", "Mars", "Venus", "Saturn"],
+                correct: 1
+            },
+            {
+                question: "What is 2 + 2 × 2?",
+                options: ["6", "8", "4", "10"],
+                correct: 0
+            },
+            {
+                question: "Who painted the Mona Lisa?",
+                options: ["Van Gogh", "Da Vinci", "Picasso", "Monet"],
+                correct: 1
+            },
+            {
+                question: "What is the largest ocean on Earth?",
+                options: ["Atlantic", "Indian", "Arctic", "Pacific"],
+                correct: 3
+            }
+
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        const questionEl = document.getElementById("question");
+        const optionsEl = document.getElementById("options");
+        const nextBtn = document.getElementById("next-btn");
+        const scoreEl = document.getElementById("score");
+        const currentEl = document.getElementById("current");
+        const resultEl = document.getElementById("result");
+        const finalScoreEl = document.getElementById("final-score");
+        const questionContainerEl = document.getElementById("question-container");
+        const quizFooterEl = document.querySelector(".quiz-footer");
+        const restartBtn = document.getElementById("restart-btn");
+
+        function loadQuestion() {
+            const question = quizData[currentQuestion];
+            questionEl.textContent = question.question;
+            
+            optionsEl.innerHTML = "";
+            question.options.forEach((option, index) => {
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.classList.add("option");
+                button.addEventListener("click", () => checkAnswer(index));
+                optionsEl.appendChild(button);
+            });
+
+            currentEl.textContent = currentQuestion + 1;
+            answered = false;
+            nextBtn.disabled = true;
+        }
+
+        function checkAnswer(selected) {
+            if (answered) return;
+            
+            answered = true;
+            const correct = quizData[currentQuestion].correct;
+            const options = optionsEl.children;
+
+            for (let option of options) {
+                option.classList.add("disabled");
+            }
+
+            if (selected === correct) {
+                options[selected].classList.add("correct");
+                score++;
+                scoreEl.textContent = score;
+            } else {
+                options[selected].classList.add("wrong");
+                options[correct].classList.add("correct");
+            }
+
+            nextBtn.disabled = false;
+        }
+
+        function showResult() {
+            questionContainerEl.style.display = "none";
+            quizFooterEl.style.display = "none";
+            resultEl.style.display = "block";
+            finalScoreEl.textContent = score;
+            let prizeMessage = '';
+            if (score === 15) {
+                prizeMessage = 'Congratulations! You won the First Prize! 🎉';
+            } else if (score >= 10) {
+                prizeMessage = 'Great job! You won the Second Prize! 🥈';
+            } else if (score >= 5) {
+                prizeMessage = 'Good effort! You won the Third Prize! 🥉';
+            } else {
+                prizeMessage = 'Keep trying!';
+            }
+            document.getElementById('prize-message').textContent = prizeMessage;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            scoreEl.textContent = score;
+            questionContainerEl.style.display = "block";
+            quizFooterEl.style.display = "flex";
+            resultEl.style.display = "none";
+            loadQuestion();
+        }
+
+        nextBtn.addEventListener("click", () => {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        });
+
+        restartBtn.addEventListener("click", restartQuiz);
+
+        // Initialize quiz
+        loadQuestion();
+    </script>
+</body>
+</html>
